@@ -40,7 +40,15 @@ By Collapsed Gibbs Sampling method, the topic and sentiment assignment of senten
 The topic and its sentiment in each sentence are gotten from the topic assignment and sentiment assignment in TSLDA. If there is a sentence expressing the sentiment j on a topic i we represent the tuple (i,j)=1, and 0 otherwise. The proportion of (i,j) over all sentences are calculated for each message. On transaction day t, the features are the average of the proportions over all messages on date t, for all topics and all sentiments.
 
 ### Predictive model
-Assume we have been given the 
+In the paper [Nguyen and Shirai], the authors recommended to use Supportive vector machine to predict the movement of stock price. In particular, the prediction problem is a classification problems of two classes (1 for up and 0 for down). The paper suggested that to predict the movement on day t, the features should be decided to be tslda weights on day t and t-1, and the historical movements on day t-1 and t-2.
 
-### Predictive model
-In the paper 
+Alternatively, we also proposed to use recurrent neural network for prediction, since the input features are sequential data. We tested the performance of simple RNN and LSTM.
+
+## Implementation
+### Dataset
+Our text data are financial news in between 2020.1.1 and 2021.1.1 on different companies. In addition, our dataset also includes the stock prices of these companies. Note that we only concern on the movements, these stock prices are transformed into 1/0 binary data representing going up or down. During the one year of 2020, we chose 10 stocks shown in the following chart. The column 'number of price' means the number of price movement data. The column 'number of news' means the number of days on which the company has a financial news. 
+
+![Dataset](https://github.com/Ruiqi-Wang/CS496_Project_Ruiqi_Hongyi/blob/main/src/6.jpg)
+
+
+## Implementation
