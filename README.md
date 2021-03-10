@@ -282,7 +282,7 @@ if __name__ == '__main__':
 ```
 
 ### Implementing predictive model
-The codes for this part are in the folder 'src/Codes/predict'. We have obtained the TSLDA weight from running Gibbs sampling codes. The weight are saved in 'src/Codes/predict/data' in csv files '{Stock Name}\_news.csv'. Here we try svm, RNN and LSTM model for prediction. First load needed packages:
+The codes for this part are in the folder 'src/Codes/predict'. We have obtained the TSLDA weight from running Gibbs sampling codes. The weight are saved in 'src/Codes/predict/news' in csv files '{Stock Name}\_news.csv'. Here we try svm, RNN and LSTM model for prediction. First load needed packages:
 ```
 import numpy as np
 import pandas as pd
