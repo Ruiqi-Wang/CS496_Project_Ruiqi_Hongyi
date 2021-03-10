@@ -46,9 +46,109 @@ Alternatively, we also proposed to use recurrent neural network for prediction, 
 
 ## Implementation
 ### Dataset
-Our text data are financial news in between 2020.1.1 and 2021.1.1 on different companies. In addition, our dataset also includes the stock prices of these companies. Note that we only concern on the movements, these stock prices are transformed into 1/0 binary data representing going up or down. During the one year of 2020, we chose 10 stocks shown in the following chart. The column 'number of price' means the number of price movement data. The column 'number of news' means the number of days on which the company has a financial news. 
+Our text data are financial news in between 2020.1.1 and 2021.1.1 on different companies. In addition, our dataset also includes the stock prices of these companies. Note that we only concern on the movements, these stock prices are transformed into 1/0 binary data representing going up or down. During the one year of 2020, we chose 10 stocks shown in the following chart. The column 'number of price' means the number of price movement data. The column 'number of news' means the number of days on which the company has a financial news. We split the data with 80% of training set and 20% of test set.
 
 ![Dataset](https://github.com/Ruiqi-Wang/CS496_Project_Ruiqi_Hongyi/blob/main/src/6.jpg)
 
+### Implementing the TSLDA Gibbs Sampling
 
-## Implementation
+The implementation includes two parts, as the model does. In this section we will introduce our codes to extract the tslda weights from texts. 
+
+#### Getting prepared with the data
+The codes in this section can be found in 'src/Codes/Gibbs_Sampling/tslda_data.py'. We import the packages needed. Note that lemmatizer of sentences are needed. We employed sentiment words from 'Sentiwordnet 3.0: An enhanced lexical resource for sentiment analysis and opinion mining.'
+```
+import re
+import json
+from pandas import read_csv
+from datetime import datetime
+from collections import defaultdict
+import nltk
+from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
+nltk.download('punkt')
+nltk.download('wordnet')
+
+lemmatizer = WordNetLemmatizer()
+opinion_words = set(read_csv(
+    'data/SentiWordNet_3.0.0.txt', comment='#', sep='\t', header=None)[4].tolist())
+```
+
+We defined the class of texts, in particular, the words, sentences and documents.
+```
+class Document:
+    def __init__(self, raw):
+        self.sentences = [Sentence(sent.strip('.')) for sent in nltk.sent_tokenize(raw)]
+
+
+class Sentence:
+    def __init__(self, sentence):
+        # remove punctuations
+        sentence = re.sub(r'[^\w\s.]', '', sentence)
+        # tokenize
+        self.words = [Word(word) for word in nltk.word_tokenize(sentence)]
+        self.wordset = set()
+        self.wordcalc = [defaultdict(lambda: 0) for _ in range(3)]
+        self.topic = None
+        self.sentiment = None
+        # categorization
+        for i, word in enumerate(self.words):
+            if word.part == 'n' and i > 0 and self.words[i - 1].part == 'n':
+                # consecutive nouns
+                word.category = 1
+                self.words[i - 1].category = 1
+            elif word.lemma in opinion_words:
+                word.category = 2
+            else:
+                word.category = 0
+        # construct word sets
+        for word in self.words:
+            self.wordset.add(word.lemma)  # for V_{d,m}
+            self.wordcalc[word.category][word.lemma] += 1  # for W^{*,*}_{d,m,v,c}
+
+
+class Word:
+    def __init__(self, word):
+        self.lemma = lemmatizer.lemmatize(word.lower())
+        synsets = wordnet.synsets(self.lemma)
+        self.part = synsets[0].pos() if len(synsets) > 0 else None
+        self.category = None
+```
+
+A TSLDAData class is defined for preprocessing the data:
+
+```
+class TSLDAData:
+    def __init__(self, stock):
+        self._prices = read_csv(f'data/prices/{stock}_prices.csv')
+        self._messages = json.load(open(f'data/news/{stock}_news.json'))
+        self.opinion_words = read_csv('data/SentiWordNet_3.0.0.txt', comment='#', sep='\t', header=None)
+        self.all_messages = defaultdict(lambda: list())
+        self.messages = list()
+        self.prices = list()
+        self.dates = list()
+        self.preprocess()
+
+    def preprocess(self):
+        for idx in self._messages['date'].keys():
+            date = datetime.strptime(self._messages['date'][idx], '%Y/%m/%d')
+            if date_is_selected(date):
+                self.all_messages[date].append(Document(self._messages['text'][idx]))
+
+        self._prices = self._prices.sort_index(ascending=False)  # in the order of time
+        last_day = None
+        for i, p in self._prices.iterrows():
+            if not last_day:
+                last_day = p['price']
+            else:
+                date = datetime.fromisoformat(p['date'])
+                adj_close = p['price']  # the adjusted close prices
+                if date in self.all_messages.keys():
+                    self.prices.append(int(adj_close < last_day))
+                    self.messages.append(self.all_messages[date])
+                    self.dates.append(date)
+                last_day = adj_close
+
+    def __call__(self):
+        return self.messages, self.prices, self.dates
+```
+Since we are not supposed to provide the raw data we used, if you want to employ the codes on your own news and price data, please save your news data in dictionary with file name '{Stock Name}\_news.json'. Your dictionary should be in format {{'date':yyyymmdd, 'news': '...'}, ...}. Please save your price data in csv file with file name '{Stock Name}\_prices.csv' where the first column is date and second column is price.
