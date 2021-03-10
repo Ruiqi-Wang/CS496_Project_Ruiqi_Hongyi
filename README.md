@@ -34,9 +34,13 @@ A generation process in TSLDA is as follows:
 ![Eq1](https://github.com/Ruiqi-Wang/CS496_Project_Ruiqi_Hongyi/blob/main/src/5.jpg)
 
 By Collapsed Gibbs Sampling method, the topic and sentiment assignment of sentence m and document d can be sampled by the following equation:
+
 ![Eq2](https://github.com/Ruiqi-Wang/CS496_Project_Ruiqi_Hongyi/blob/main/src/2.jpg)
 
-The 
+The topic and its sentiment in each sentence are gotten from the topic assignment and sentiment assignment in TSLDA. If there is a sentence expressing the sentiment j on a topic i we represent the tuple (i,j)=1, and 0 otherwise. The proportion of (i,j) over all sentences are calculated for each message. On transaction day t, the features are the average of the proportions over all messages on date t, for all topics and all sentiments.
+
+### Predictive model
+Assume we have been given the 
 
 ### Predictive model
 In the paper 
