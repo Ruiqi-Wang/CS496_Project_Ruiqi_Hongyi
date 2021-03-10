@@ -33,3 +33,10 @@ A generation process in TSLDA is as follows:
     - For each word in the sentence, Choose a word in Equation 1:
 ![Eq1](https://github.com/Ruiqi-Wang/CS496_Project_Ruiqi_Hongyi/blob/main/src/5.jpg)
 
+By Collapsed Gibbs Sampling method, the topic and sentiment assignment of sentence m and document d can be sampled by the following equation:
+![Eq2](https://github.com/Ruiqi-Wang/CS496_Project_Ruiqi_Hongyi/blob/main/src/2.jpg)
+
+The 
+
+### Predictive model
+In the paper 
